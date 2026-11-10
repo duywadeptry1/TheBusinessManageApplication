@@ -1,0 +1,6 @@
+{
+  "name": "GoShip",
+  "description": "Smart logistics, express tracking, and financial analytics hub with adaptive mobile and tablet support.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

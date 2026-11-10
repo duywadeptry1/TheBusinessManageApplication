@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">GoShip</string>
+    <string name="app_tagline">Smart Logistics &amp; Express Hub</string>
+
+    <!-- Navigation Tabs -->
+    <string name="nav_home">Tổng quan</string>
+    <string name="nav_orders">Đơn hàng</string>
+    <string name="nav_tracking">Định vị</string>
+    <string name="nav_services">Dịch vụ</string>
+    <string name="nav_analytics">Tài chính</string>
+    <string name="nav_profile">Cá nhân</string>
+
+    <!-- Home Screen -->
+    <string name="greeting_user">Xin chào, Alex Nguyễn</string>
+    <string name="user_badge_vip">Thành viên Kim Cương</string>
+    <string name="search_placeholder">Tra cứu mã vận đơn hoặc dịch vụ…</string>
+    <string name="quick_actions_title">Thao tác nhanh</string>
+    <string name="action_create_order">Tạo đơn mới</string>
+    <string name="action_quick_ship">Gửi hàng nhanh</string>
+    <string name="action_topup">Nạp ví</string>
+    <string name="action_calculate_fee">Ước tính cước</string>
+    <string name="stat_total_orders">Tổng số đơn</string>
+    <string name="stat_in_transit">Đang vận chuyển</string>
+    <string name="stat_delivered">Đã giao thành công</string>
+    <string name="stat_cancelled">Đã hủy / Hoàn trả</string>
+    <string name="promo_title">Ưu đãi độc quyền tháng này</string>
+    <string name="promo_desc">Giảm ngay 20% cho đơn giao hỏa tốc liên tỉnh!</string>
+    <string name="recent_orders_title">Đơn hàng gần đây</string>
+    <string name="view_all">Xem tất cả</string>
+
+    <!-- Orders Screen -->
+    <string name="filter_all">Tất cả</string>
+    <string name="filter_delivering">Đang giao</string>
+    <string name="filter_pending">Chờ lấy</string>
+    <string name="filter_completed">Đã giao</string>
+    <string name="filter_returned">Hoàn trả</string>
+    <string name="order_code_label">Mã đơn:</string>
+    <string name="order_from">Từ:</string>
+    <string name="order_to">Đến:</string>
+    <string name="order_eta">Dự kiến:</string>
+    <string name="order_fee">Cước phí:</string>
+    <string name="order_track_btn">Theo dõi đơn</string>
+    <string name="order_details_btn">Chi tiết</string>
+
+    <!-- Tracking Screen -->
+    <string name="tracking_header_title">Theo dõi hành trình thời gian thực</string>
+    <string name="tracking_live_status">Tài xế đang trên đường giao hàng</string>
+    <string name="tracking_courier_name">Trần Văn Mạnh</string>
+    <string name="tracking_courier_vehicle">Honda AirBlade • 29E1-884.23</string>
+    <string name="tracking_courier_rating">4.9 ★ (1,240 chuyến)</string>
+    <string name="tracking_step_created">Đã xác nhận đơn hàng</string>
+    <string name="tracking_step_picked">Tài xế đã lấy hàng</string>
+    <string name="tracking_step_in_transit">Đang vận chuyển đến trạm trung chuyển</string>
+    <string name="tracking_step_out_for_delivery">Đang giao đến người nhận</string>
+    <string name="tracking_step_delivered">Giao hàng hoàn tất</string>
+    <string name="call_courier">Gọi điện</string>
+    <string name="message_courier">Nhắn tin</string>
+    <string name="sos_support">Báo sự cố</string>
+
+    <!-- Services Screen -->
+    <string name="services_title">Giải pháp vận chuyển chuyên nghiệp</string>
+    <string name="service_express">Hỏa tốc 2H</string>
+    <string name="service_express_desc">Giao nhận nội thành siêu tốc trong vòng 2 giờ</string>
+    <string name="service_standard">Tiết kiệm liên tỉnh</string>
+    <string name="service_standard_desc">Tối ưu chi phí cho kiện hàng vừa và lớn từ 1-3 ngày</string>
+    <string name="service_bulky">Hàng cồng kềnh / Xe tải</string>
+    <string name="service_bulky_desc">Đội ngũ xe tải từ 500kg đến 5 tấn hỗ trợ bốc xếp</string>
+    <string name="service_international">Vận chuyển Quốc tế</string>
+    <string name="service_international_desc">Kết nối hơn 200 quốc gia với hải quan thông quan nhanh</string>
+    <string name="book_service_btn">Đặt dịch vụ</string>
+
+    <!-- Analytics & Wallet Screen -->
+    <string name="wallet_card_title">Số dư khả dụng</string>
+    <string name="wallet_currency_symbol">VND</string>
+    <string name="wallet_topup_btn">Nạp tiền</string>
+    <string name="wallet_withdraw_btn">Rút tiền</string>
+    <string name="revenue_chart_title">Biểu đồ doanh thu tuần này</string>
+    <string name="revenue_growth">+18.5% so với tuần trước</string>
+    <string name="payment_breakdown_title">Cơ cấu phương thức thanh toán</string>
+    <string name="payment_cod">Thanh toán khi nhận (COD)</string>
+    <string name="payment_wallet">Ví GoShip / Ví điện tử</string>
+    <string name="payment_bank">Chuyển khoản QR ngân hàng</string>
+
+    <!-- Profile & Settings Screen -->
+    <string name="profile_title">Tài khoản &amp; Cài đặt</string>
+    <string name="user_email">alex.nguyen@goship.vn</string>
+    <string name="user_phone">+84 987 654 321</string>
+    <string name="setting_dark_mode">Chế độ giao diện tối (Dark Mode)</string>
+    <string name="setting_notifications">Thông báo biến động đơn &amp; tin tức</string>
+    <string name="setting_security">Bảo mật vân tay &amp; xác thực 2 lớp</string>
+    <string name="setting_saved_addresses">Danh bạ địa chỉ đã lưu</string>
+    <string name="setting_language">Ngôn ngữ (Language)</string>
+    <string name="setting_help">Trung tâm trợ giúp &amp; CSKH 24/7</string>
+    <string name="setting_logout">Đăng xuất tài khoản</string>
+
+    <!-- Create Order / Bottom Sheet Modal -->
+    <string name="modal_create_order_title">Xác nhận tạo đơn hàng</string>
+    <string name="modal_banner_text">Ưu đãi hội viên: Áp dụng mã GOSHIPVIP giảm 15% phí</string>
+    <string name="sender_label">Người gửi &amp; Điểm lấy hàng</string>
+    <string name="sender_default">Alex Nguyễn • 120 Hoàng Hoa Thám, Ba Đình, Hà Nội</string>
+    <string name="recipient_label">Người nhận &amp; Điểm giao hàng</string>
+    <string name="recipient_placeholder">Nhập tên, số điện thoại &amp; địa chỉ nhận</string>
+    <string name="package_type_label">Loại hàng hóa</string>
+    <string name="package_weight_label">Trọng lượng (kg)</string>
+    <string name="payment_method_label">Hình thức thanh toán cước</string>
+    <string name="subtotal_label">Cước vận chuyển gốc:</string>
+    <string name="discount_label">Chiết khấu hội viên:</string>
+    <string name="insurance_label">Bảo hiểm hàng hóa:</string>
+    <string name="total_amount_label">Tổng cộng thanh toán:</string>
+    <string name="btn_cancel">Hủy</string>
+    <string name="btn_confirm_order">Xác nhận tạo đơn</string>
+</resources>
