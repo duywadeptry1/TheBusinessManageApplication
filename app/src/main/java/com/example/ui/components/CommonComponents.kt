@@ -26,15 +26,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.BusinessCenter
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.DirectionsCar
-import androidx.compose.material.icons.filled.LocalShipping
-import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -63,7 +58,6 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.model.OrderStatus
 import com.example.model.ShippingOrder
 import com.example.model.StatCardData
@@ -136,7 +130,7 @@ fun StatMetricCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        imageVector = Icons.Default.LocalShipping,
+                        imageVector = Icons.Default.BusinessCenter,
                         contentDescription = null,
                         tint = iconColor,
                         modifier = Modifier.size(20.dp)
@@ -296,7 +290,7 @@ fun OrderListItemCard(
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            // Header Row: Tracking number & Status Pill
+            // Header Row: Project/Task Code & Status Pill
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -311,7 +305,7 @@ fun OrderListItemCard(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Default.LocalShipping,
+                            imageVector = Icons.Default.BusinessCenter,
                             contentDescription = null,
                             tint = BrandBlue,
                             modifier = Modifier.size(18.dp)
@@ -326,7 +320,7 @@ fun OrderListItemCard(
                             color = MaterialTheme.colorScheme.onSurface
                         )
                         Text(
-                            text = "${order.serviceType} • ${order.weightKg} kg",
+                            text = "${order.serviceType} • ${order.weightKg.toInt()} ngày công",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
@@ -338,9 +332,8 @@ fun OrderListItemCard(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Route visual indicators
+            // Business Workflow Scope & Assignee visual indicators
             Row(modifier = Modifier.fillMaxWidth()) {
-                // Pin dots and connecting line
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.padding(top = 4.dp, end = 12.dp)
@@ -367,18 +360,18 @@ fun OrderListItemCard(
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        text = order.senderAddress,
+                        text = "${order.senderName}: ${order.senderAddress}",
                         style = MaterialTheme.typography.bodyMedium,
+                        fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
-                    Spacer(modifier = Modifier.height(14.dp))
+                    Spacer(modifier = Modifier.height(12.dp))
                     Text(
-                        text = order.recipientAddress,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium,
-                        color = MaterialTheme.colorScheme.onSurface,
+                        text = "Phụ trách: ${order.recipientName} • ${order.recipientAddress}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis
                     )
@@ -387,7 +380,7 @@ fun OrderListItemCard(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Footer: Fee, COD and Action Button
+            // Footer: Budget, Operating Cost, and Workflow Action Button
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -395,18 +388,16 @@ fun OrderListItemCard(
             ) {
                 Column {
                     Text(
-                        text = "Cước phí: ${GoShipViewModel.formatVnd(order.feeVnd)}",
+                        text = "Ngân sách: ${GoShipViewModel.formatVnd(if (order.codVnd > 0) order.codVnd else order.feeVnd)}",
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.onSurface,
                         fontWeight = FontWeight.Bold
                     )
-                    if (order.codVnd > 0) {
-                        Text(
-                            text = "COD: ${GoShipViewModel.formatVnd(order.codVnd)}",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+                    Text(
+                        text = "Chi phí vận hành: ${GoShipViewModel.formatVnd(order.feeVnd)}",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
 
                 Row(
@@ -418,7 +409,7 @@ fun OrderListItemCard(
                         .padding(horizontal = 12.dp, vertical = 6.dp)
                 ) {
                     Text(
-                        text = "Theo dõi",
+                        text = "Tiến độ",
                         style = MaterialTheme.typography.labelMedium,
                         color = BrandBlue,
                         fontWeight = FontWeight.Bold
@@ -470,12 +461,10 @@ fun InteractiveMapView(
             val w = size.width
             val h = size.height
 
-            // Background road network map rendering
             val roadColor = if (isDark) Color(0xFF1E293B) else Color(0xFFFFFFFF)
             val highwayColor = if (isDark) Color(0xFF334155) else Color(0xFFFEF3C7)
             val riverColor = if (isDark) Color(0xFF0C2442) else Color(0xFFBFDBFE)
 
-            // Draw curved river
             val riverPath = Path().apply {
                 moveTo(0f, h * 0.75f)
                 cubicTo(w * 0.3f, h * 0.65f, w * 0.6f, h * 0.85f, w, h * 0.68f)
@@ -486,7 +475,6 @@ fun InteractiveMapView(
                 style = Stroke(width = 28f * zoomLevel, cap = StrokeCap.Round)
             )
 
-            // Draw Grid roads
             val roadStroke = 7f * zoomLevel
             for (i in 1..8) {
                 val y = (h / 9f) * i
@@ -507,7 +495,6 @@ fun InteractiveMapView(
                 )
             }
 
-            // Diagonal Express Avenue
             drawLine(
                 color = highwayColor,
                 start = Offset(0f, h * 0.2f),
@@ -515,25 +502,23 @@ fun InteractiveMapView(
                 strokeWidth = 14f * zoomLevel
             )
 
-            // Route Path (From Hub to Driver to Destination)
-            val pStart = Offset(w * 0.18f, h * 0.35f)
-            val pDriver = Offset(w * 0.52f, h * 0.48f)
-            val pEnd = Offset(w * 0.82f, h * 0.28f)
+            // Network connecting 3 Enterprise Branches (Hanoi HQ -> Da Nang Hub -> HCMC Branch)
+            val pBranchNorth = Offset(w * 0.18f, h * 0.35f)
+            val pHeadquarters = Offset(w * 0.52f, h * 0.48f)
+            val pBranchSouth = Offset(w * 0.82f, h * 0.28f)
 
-            // Solid completed route
             drawLine(
                 color = BrandBlue,
-                start = pStart,
-                end = pDriver,
+                start = pBranchNorth,
+                end = pHeadquarters,
                 strokeWidth = 6f,
                 cap = StrokeCap.Round
             )
 
-            // Dashed pending route
             val dashedEffect = PathEffect.dashPathEffect(floatArrayOf(15f, 12f), 0f)
             val pendingRoute = Path().apply {
-                moveTo(pDriver.x, pDriver.y)
-                lineTo(pEnd.x, pEnd.y)
+                moveTo(pHeadquarters.x, pHeadquarters.y)
+                lineTo(pBranchSouth.x, pBranchSouth.y)
             }
             drawPath(
                 path = pendingRoute,
@@ -541,25 +526,23 @@ fun InteractiveMapView(
                 style = Stroke(width = 6f, pathEffect = dashedEffect, cap = StrokeCap.Round)
             )
 
-            // Start Hub Marker
-            drawCircle(color = BrandBlue.copy(alpha = 0.3f), radius = 14f, center = pStart)
-            drawCircle(color = BrandBlue, radius = 7f, center = pStart)
+            drawCircle(color = BrandBlue.copy(alpha = 0.3f), radius = 14f, center = pBranchNorth)
+            drawCircle(color = BrandBlue, radius = 7f, center = pBranchNorth)
 
-            // Destination Marker
-            drawCircle(color = BrandOrange.copy(alpha = 0.3f), radius = 16f, center = pEnd)
-            drawCircle(color = BrandOrange, radius = 8f, center = pEnd)
+            drawCircle(color = BrandOrange.copy(alpha = 0.3f), radius = 16f, center = pBranchSouth)
+            drawCircle(color = BrandOrange, radius = 8f, center = pBranchSouth)
 
-            // Courier pulse radar effect
+            // Headquarters GPS Check-in Radar
             drawCircle(
                 color = BrandBlue.copy(alpha = (1f - (pulseScale - 0.8f) / 1.4f).coerceIn(0f, 0.4f)),
-                radius = 16f * pulseScale,
-                center = pDriver
+                radius = 18f * pulseScale,
+                center = pHeadquarters
             )
-            drawCircle(color = Color.White, radius = 14f, center = pDriver)
-            drawCircle(color = BrandBlue, radius = 10f, center = pDriver)
+            drawCircle(color = Color.White, radius = 14f, center = pHeadquarters)
+            drawCircle(color = BrandBlue, radius = 10f, center = pHeadquarters)
         }
 
-        // Live badge overlay at top left
+        // Live Branch GPS Check-in overlay at top left
         Row(
             modifier = Modifier
                 .padding(14.dp)
@@ -576,7 +559,7 @@ fun InteractiveMapView(
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                text = "Tài xế cách $distanceKm km • Đến sau ~$driverEtaMinutes phút",
+                text = "Trụ sở Chính (Bán kính ${distanceKm}km) • $driverEtaMinutes nhân sự vừa check-in",
                 style = MaterialTheme.typography.labelSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface

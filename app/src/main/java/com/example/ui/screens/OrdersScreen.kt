@@ -23,10 +23,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.BusinessCenter
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.DeleteOutline
-import androidx.compose.material.icons.filled.LocalShipping
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -81,6 +81,8 @@ fun OrdersScreen(
             val matchesFilter = uiState.selectedOrderFilter == null || order.status == uiState.selectedOrderFilter
             val matchesSearch = uiState.searchQuery.isBlank() ||
                     order.trackingNumber.contains(uiState.searchQuery, ignoreCase = true) ||
+                    order.senderName.contains(uiState.searchQuery, ignoreCase = true) ||
+                    order.senderAddress.contains(uiState.searchQuery, ignoreCase = true) ||
                     order.recipientName.contains(uiState.searchQuery, ignoreCase = true) ||
                     order.recipientAddress.contains(uiState.searchQuery, ignoreCase = true)
             matchesFilter && matchesSearch
@@ -101,7 +103,7 @@ fun OrdersScreen(
                         .padding(horizontal = 24.dp, vertical = 16.dp),
                     horizontalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
-                    // Left Column: Filter Chips & Orders List (55%)
+                    // Left Column: Filter Chips & Business Projects List (55%)
                     Column(
                         modifier = Modifier
                             .weight(1.1f)
@@ -133,7 +135,7 @@ fun OrdersScreen(
                         }
                     }
 
-                    // Right Column: Order Detail & Action Pane (45%)
+                    // Right Column: Business Project Detail & Approval Pane (45%)
                     Column(
                         modifier = Modifier
                             .weight(0.9f)
@@ -192,7 +194,7 @@ fun OrdersScreen(
                                         onJumpToTracking()
                                     }
                                 )
-                                // Quick DB Status & Delete bar below each card
+                                // Quick DB Workflow Status & Delete bar below each card
                                 OrderQuickDbActionsBar(
                                     order = order,
                                     onUpdateStatus = { newStatus ->
@@ -210,7 +212,7 @@ fun OrdersScreen(
                 }
             }
 
-            // Floating Action Button to create order
+            // Floating Action Button to create new Business Project / Task
             FloatingActionButton(
                 onClick = onCreateOrderClick,
                 containerColor = BrandBlue,
@@ -221,7 +223,7 @@ fun OrdersScreen(
                     .padding(24.dp)
                     .testTag("fab_create_order")
             ) {
-                Icon(Icons.Default.Add, contentDescription = "Tạo đơn mới", modifier = Modifier.size(26.dp))
+                Icon(Icons.Default.Add, contentDescription = "Tạo dự án mới", modifier = Modifier.size(26.dp))
             }
         }
     }
@@ -234,11 +236,11 @@ private fun OrderQuickDbActionsBar(
     onDelete: () -> Unit
 ) {
     val isDark = LocalThemeIsDark.current
-    val nextStatus = when (order.status) {
-        OrderStatus.PENDING -> OrderStatus.DELIVERING
-        OrderStatus.DELIVERING -> OrderStatus.COMPLETED
-        OrderStatus.COMPLETED -> OrderStatus.DELIVERING
-        OrderStatus.CANCELLED -> OrderStatus.PENDING
+    val (actionLabel, nextStatus) = when (order.status) {
+        OrderStatus.PENDING -> "Phê duyệt triển khai" to OrderStatus.DELIVERING
+        OrderStatus.DELIVERING -> "Xác nhận nghiệm thu" to OrderStatus.COMPLETED
+        OrderStatus.COMPLETED -> "Mở lại triển khai" to OrderStatus.DELIVERING
+        OrderStatus.CANCELLED -> "Đưa vào chờ duyệt" to OrderStatus.PENDING
     }
 
     Row(
@@ -264,7 +266,7 @@ private fun OrderQuickDbActionsBar(
             )
             Spacer(modifier = Modifier.width(6.dp))
             Text(
-                text = "Chuyển sang: ${nextStatus.label}",
+                text = "Quy trình: $actionLabel",
                 style = MaterialTheme.typography.labelSmall,
                 color = SuccessGreen,
                 fontWeight = FontWeight.SemiBold
@@ -280,7 +282,7 @@ private fun OrderQuickDbActionsBar(
         ) {
             Icon(
                 imageVector = Icons.Default.DeleteOutline,
-                contentDescription = "Xóa đơn",
+                contentDescription = "Xóa dự án",
                 tint = ErrorRed,
                 modifier = Modifier.size(15.dp)
             )
@@ -311,7 +313,7 @@ private fun OrdersTopHeader(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "Quản lý đơn hàng",
+                text = "Quản lý Dự án & Quy trình",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -347,7 +349,7 @@ private fun OrdersTopHeader(
         SearchBarField(
             query = searchQuery,
             onQueryChange = onSearchChange,
-            placeholderText = "Tìm theo mã đơn hoặc người nhận…"
+            placeholderText = "Tìm theo mã dự án, phòng ban hoặc người phụ trách…"
         )
 
         Spacer(modifier = Modifier.height(12.dp))
@@ -440,7 +442,7 @@ private fun TabletOrderDetailPane(
             ) {
                 Column {
                     Text(
-                        text = "Chi tiết kiện hàng",
+                        text = "Hồ sơ Dự án & Nghiệp vụ",
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -464,7 +466,7 @@ private fun TabletOrderDetailPane(
             HorizontalDivider(color = if (isDark) MaterialTheme.colorScheme.outline.copy(alpha = 0.5f) else Color(0xFFE2E8F0))
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Route points
+            // Department & Assignee details
             Row(modifier = Modifier.fillMaxWidth()) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
@@ -475,10 +477,10 @@ private fun TabletOrderDetailPane(
                     Box(modifier = Modifier.size(10.dp).clip(CircleShape).background(BrandOrange))
                 }
                 Column {
-                    Text(text = "Điểm gửi hàng", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(text = "Đơn vị chủ trì & Mục tiêu", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(text = "${order.senderName} • ${order.senderAddress}", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
                     Spacer(modifier = Modifier.height(14.dp))
-                    Text(text = "Điểm giao nhận", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(text = "Nhân sự phụ trách & Chi nhánh", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(text = "${order.recipientName} • ${order.recipientAddress}", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = MaterialTheme.colorScheme.onSurface)
                 }
             }
@@ -487,7 +489,7 @@ private fun TabletOrderDetailPane(
 
             // Status Updater Row
             Text(
-                text = "Cập nhật trạng thái trong Database",
+                text = "Phê duyệt & Cập nhật trạng thái trong Database",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -519,16 +521,16 @@ private fun TabletOrderDetailPane(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column {
-                    Text(text = "Gói dịch vụ", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(text = "Nhóm nghiệp vụ", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     Text(text = order.serviceType, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                 }
                 Column {
-                    Text(text = "Trọng lượng", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(text = "${order.weightKg} kg", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                    Text(text = "Định mức", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(text = "${order.weightKg.toInt()} ngày công", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
                 }
                 Column {
-                    Text(text = "Cước phí", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    Text(text = GoShipViewModel.formatVnd(order.feeVnd), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = BrandBlue)
+                    Text(text = "Ngân sách", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Text(text = GoShipViewModel.formatVnd(if (order.codVnd > 0) order.codVnd else order.feeVnd), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Bold, color = BrandBlue)
                 }
             }
 
@@ -540,9 +542,9 @@ private fun TabletOrderDetailPane(
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = BrandBlue)
             ) {
-                Icon(Icons.Default.LocalShipping, contentDescription = null, modifier = Modifier.size(18.dp))
+                Icon(Icons.Default.BusinessCenter, contentDescription = null, modifier = Modifier.size(18.dp))
                 Spacer(modifier = Modifier.width(8.dp))
-                Text("Theo dõi hành trình thực tế", style = MaterialTheme.typography.labelLarge, color = Color.White)
+                Text("Giám sát chi nhánh & Tiến độ thực tế", style = MaterialTheme.typography.labelLarge, color = Color.White)
             }
         }
     }
@@ -563,11 +565,11 @@ private fun EmptyOrdersState(onImportClick: () -> Unit) {
                 .background(BrandBlue.copy(alpha = 0.1f)),
             contentAlignment = Alignment.Center
         ) {
-            Icon(Icons.Default.LocalShipping, contentDescription = null, tint = BrandBlue, modifier = Modifier.size(32.dp))
+            Icon(Icons.Default.BusinessCenter, contentDescription = null, tint = BrandBlue, modifier = Modifier.size(32.dp))
         }
         Spacer(modifier = Modifier.height(12.dp))
         Text(
-            text = "Không tìm thấy đơn hàng phù hợp",
+            text = "Không tìm thấy dự án / quy trình phù hợp",
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = MaterialTheme.colorScheme.onSurface

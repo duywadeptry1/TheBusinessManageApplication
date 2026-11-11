@@ -11,6 +11,7 @@ import com.example.model.CourierDriver
 import com.example.model.DailyRevenue
 import com.example.model.OrderStatus
 import com.example.model.PaymentMethodShare
+import com.example.model.ScheduleDayItem
 import com.example.model.ShippingOrder
 import com.example.model.ShippingService
 import com.example.model.StatCardData
@@ -33,7 +34,11 @@ data class GoShipUiState(
     val isDatabaseImportSheetVisible: Boolean = false,
     val databaseEditorPayload: String = SeedData.SAMPLE_IMPORT_JSON,
     val selectedServiceForOrder: ShippingService? = null,
-    val trackingOrderId: String = "VN-88492-HN",
+    val trackingOrderId: String = "PRJ-88492-ERP",
+    val selectedScheduleDayIndex: Int = 4, // T6 highlighted as in Figma
+    val weeklySchedule: List<ScheduleDayItem> = SeedData.defaultWeeklySchedule(),
+    val isCheckedInToday: Boolean = false,
+    val attendanceCount: Int = 124,
     val orders: List<ShippingOrder> = emptyList(),
     val services: List<ShippingService> = emptyList(),
     val stats: List<StatCardData> = emptyList(),
@@ -69,7 +74,8 @@ class GoShipViewModel(
                 dailyRevenues = initialRevenues,
                 paymentShares = initialShares,
                 activeDriver = SeedData.defaultDriver(),
-                trackingSteps = SeedData.defaultTrackingSteps()
+                trackingSteps = SeedData.defaultTrackingSteps(),
+                weeklySchedule = SeedData.defaultWeeklySchedule()
             )
         }
 
@@ -116,38 +122,38 @@ class GoShipViewModel(
 
     private fun computeStatsFromOrders(orders: List<ShippingOrder>): List<StatCardData> {
         val total = orders.size
-        val delivering = orders.count { it.status == OrderStatus.DELIVERING || it.status == OrderStatus.PENDING }
+        val active = orders.count { it.status == OrderStatus.DELIVERING }
+        val pending = orders.count { it.status == OrderStatus.PENDING }
         val completed = orders.count { it.status == OrderStatus.COMPLETED }
         val cancelled = orders.count { it.status == OrderStatus.CANCELLED }
-        val expressCount = orders.count { it.serviceType.contains("Hỏa tốc", ignoreCase = true) }
         val successRate = if (total > 0) ((completed * 100f) / total).toInt() else 100
 
         return listOf(
             StatCardData(
-                title = "Tổng đơn hàng",
+                title = "Tổng dự án & việc",
                 count = total.toString(),
-                subtitle = "đơn trong DB",
+                subtitle = "hạng mục trong DB",
                 trend = "+14.8%",
                 isPositive = true
             ),
             StatCardData(
-                title = "Đang vận chuyển",
-                count = delivering.toString(),
-                subtitle = "đang xử lý",
-                trend = "$expressCount hỏa tốc",
+                title = "Đang triển khai",
+                count = (active + pending).toString(),
+                subtitle = "$pending chờ phê duyệt",
+                trend = "Đúng hạn",
                 isPositive = true
             ),
             StatCardData(
-                title = "Giao thành công",
+                title = "Đã nghiệm thu",
                 count = completed.toString(),
-                subtitle = "tỷ lệ $successRate%",
-                trend = "+8.4%",
+                subtitle = "hoàn tất $successRate%",
+                trend = "+12.4%",
                 isPositive = true
             ),
             StatCardData(
-                title = "Đã hoàn / hủy",
+                title = "Tạm dừng / Quá hạn",
                 count = cancelled.toString(),
-                subtitle = "kiểm soát tốt",
+                subtitle = "cần rà soát",
                 trend = "-2.1%",
                 isPositive = false
             )
@@ -156,6 +162,45 @@ class GoShipViewModel(
 
     fun selectTab(index: Int) {
         _uiState.update { it.copy(selectedTab = index) }
+    }
+
+    fun selectScheduleDay(index: Int) {
+        _uiState.update { it.copy(selectedScheduleDayIndex = index.coerceIn(0, it.weeklySchedule.size - 1)) }
+    }
+
+    fun performGpsCheckIn() {
+        val current = _uiState.value
+        if (current.isCheckedInToday) {
+            _uiState.update {
+                it.copy(snackbarMessage = "Bạn đã hoàn tất chấm công GPS hôm nay tại Trụ sở chính!")
+            }
+            return
+        }
+
+        val newCount = current.attendanceCount + 1
+        val updatedDriver = current.activeDriver?.copy(
+            licensePlate = "HQ-HANOI-01 • $newCount/130 Nhân sự có mặt"
+        )
+        val newStep = TrackingStep(
+            title = "Chấm công GPS & Xác thực Ca trực thành công",
+            description = "Alex Nguyễn (CEO) vừa xác thực vị trí GPS tại Trụ sở Chính Ba Đình, Hà Nội.",
+            timestamp = "Vừa xong",
+            isDone = true,
+            isCurrent = true
+        )
+        val updatedSteps = current.trackingSteps.map { it.copy(isCurrent = false) }
+            .toMutableList()
+            .apply { add(3.coerceAtMost(size), newStep) }
+
+        _uiState.update {
+            it.copy(
+                isCheckedInToday = true,
+                attendanceCount = newCount,
+                activeDriver = updatedDriver,
+                trackingSteps = updatedSteps,
+                snackbarMessage = "Chấm công GPS thành công! Quân số: $newCount/130 nhân sự."
+            )
+        }
     }
 
     fun toggleDarkMode(enable: Boolean) {
@@ -215,34 +260,41 @@ class GoShipViewModel(
     ) {
         val currentState = _uiState.value
         val service = currentState.selectedServiceForOrder ?: currentState.services.first()
+        val department = when (paymentMethod) {
+            "TECH" -> "Phòng Kỹ Thuật & R&D"
+            "MKT" -> "Phòng Marketing & Truyền Thông"
+            "FIN" -> "Phòng Tài Chính - Kế Toán"
+            else -> "Phòng Kinh Doanh B2B"
+        }
+        val projectBudget = (service.basePriceVnd * (0.5f + weightKg * 0.1f)).toLong()
+        val operatingFee = (projectBudget * 0.12f).toLong()
+
         val newOrder = ShippingOrder(
             id = "ORD-${System.currentTimeMillis() % 100000}",
-            trackingNumber = "VN-${(10000..99999).random()}-HN",
-            senderName = "Alex Nguyễn",
-            senderAddress = "120 Hoàng Hoa Thám, Ba Đình, Hà Nội",
+            trackingNumber = "PRJ-${(10000..99999).random()}-BM",
+            senderName = department,
+            senderAddress = recipientAddress.ifBlank { "Dự án Triển khai Giải pháp Doanh nghiệp" },
             recipientName = recipientName.ifBlank { "Khách Hàng Mới" },
-            recipientAddress = recipientAddress.ifBlank { "Quận Cầu Giấy, Hà Nội" },
+            recipientAddress = "Trụ sở Chính • Quy mô ${weightKg.toInt()} ngày công • Ưu tiên Cao",
             status = OrderStatus.PENDING,
-            serviceType = service.name,
-            feeVnd = (service.basePriceVnd * (1 + weightKg * 0.15f)).toLong(),
-            codVnd = if (paymentMethod == "COD") 500000L else 0L,
-            createdAt = "Vừa xong",
-            estimatedDelivery = "Dự kiến hôm nay",
+            serviceType = department.replace("Phòng ", ""),
+            feeVnd = operatingFee,
+            codVnd = projectBudget,
+            createdAt = "Vừa khởi tạo",
+            estimatedDelivery = "Hạn duyệt hôm nay",
             weightKg = weightKg
         )
 
-        // Immediately update in-memory UI state for instant responsiveness
         val updatedOrders = listOf(newOrder) + currentState.orders
         _uiState.update {
             it.copy(
                 orders = updatedOrders,
                 stats = computeStatsFromOrders(updatedOrders),
                 isCreateOrderSheetVisible = false,
-                snackbarMessage = "Đã lưu đơn ${newOrder.trackingNumber} vào Database!"
+                snackbarMessage = "Đã khởi tạo quy trình ${newOrder.trackingNumber} vào Database!"
             )
         }
 
-        // Persist in Room SQLite Database if repository is wired
         if (repository != null) {
             viewModelScope.launch {
                 repository.insertOrder(newOrder)
@@ -258,7 +310,7 @@ class GoShipViewModel(
             it.copy(
                 orders = updatedOrders,
                 stats = computeStatsFromOrders(updatedOrders),
-                snackbarMessage = "Đã cập nhật trạng thái: ${newStatus.label}"
+                snackbarMessage = "Đã cập nhật tiến độ quy trình: ${newStatus.label}"
             )
         }
         if (repository != null) {
@@ -274,7 +326,7 @@ class GoShipViewModel(
             it.copy(
                 orders = updatedOrders,
                 stats = computeStatsFromOrders(updatedOrders),
-                snackbarMessage = "Đã xóa đơn hàng khỏi Database"
+                snackbarMessage = "Đã xóa hạng mục khỏi Database"
             )
         }
         if (repository != null) {
@@ -299,7 +351,6 @@ class GoShipViewModel(
                     }
                 }
             } else {
-                // Fallback parser when running without Room context (e.g., pure unit test)
                 _uiState.update {
                     it.copy(
                         isDatabaseImportSheetVisible = false,
@@ -320,7 +371,7 @@ class GoShipViewModel(
                     _uiState.update {
                         it.copy(
                             isDatabaseImportSheetVisible = false,
-                            snackbarMessage = "Đã nhập ${summary.ordersImported} đơn hàng từ CSV vào Database!"
+                            snackbarMessage = "Đã nhập ${summary.ordersImported} dự án/quy trình từ CSV vào Database!"
                         )
                     }
                 }
@@ -365,7 +416,7 @@ class GoShipViewModel(
             _uiState.update {
                 it.copy(
                     isDatabaseImportSheetVisible = false,
-                    snackbarMessage = "Đã khôi phục dữ liệu gốc trong Database!"
+                    snackbarMessage = "Đã khôi phục dữ liệu mẫu Doanh nghiệp trong Database!"
                 )
             }
         }

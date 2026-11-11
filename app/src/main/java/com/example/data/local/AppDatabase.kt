@@ -17,7 +17,7 @@ import com.example.data.local.entity.ServiceEntity
         RevenueEntity::class,
         PaymentShareEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -33,7 +33,7 @@ abstract class AppDatabase : RoomDatabase() {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
                     AppDatabase::class.java,
-                    "goship_business_db"
+                    "business_manage_app_db"
                 )
                     .fallbackToDestructiveMigration()
                     .build()

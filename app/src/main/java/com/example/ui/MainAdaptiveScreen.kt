@@ -21,16 +21,17 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.filled.BusinessCenter
 import androidx.compose.material.icons.filled.Dashboard
-import androidx.compose.material.icons.filled.LocalShipping
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.LocationOn
-import androidx.compose.material.icons.filled.MiscellaneousServices
 import androidx.compose.material.icons.outlined.AccountBalanceWallet
 import androidx.compose.material.icons.outlined.AccountCircle
+import androidx.compose.material.icons.outlined.Assignment
 import androidx.compose.material.icons.outlined.Dashboard
-import androidx.compose.material.icons.outlined.LocalShipping
+import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.LocationOn
-import androidx.compose.material.icons.outlined.MiscellaneousServices
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -100,11 +101,11 @@ fun MainAdaptiveScreen(
 
     val navItems = listOf(
         NavItem("Tổng quan", Icons.Filled.Dashboard, Icons.Outlined.Dashboard, "nav_home"),
-        NavItem("Đơn hàng", Icons.Filled.LocalShipping, Icons.Outlined.LocalShipping, "nav_orders"),
-        NavItem("Định vị", Icons.Filled.LocationOn, Icons.Outlined.LocationOn, "nav_tracking"),
-        NavItem("Dịch vụ", Icons.Filled.MiscellaneousServices, Icons.Outlined.MiscellaneousServices, "nav_services"),
+        NavItem("Công việc", Icons.Filled.Assignment, Icons.Outlined.Assignment, "nav_orders"),
+        NavItem("Chi nhánh", Icons.Filled.LocationOn, Icons.Outlined.LocationOn, "nav_tracking"),
+        NavItem("Nhân sự", Icons.Filled.Groups, Icons.Outlined.Groups, "nav_services"),
         NavItem("Tài chính", Icons.Filled.AccountBalanceWallet, Icons.Outlined.AccountBalanceWallet, "nav_analytics"),
-        NavItem("Cá nhân", Icons.Filled.AccountCircle, Icons.Outlined.AccountCircle, "nav_profile")
+        NavItem("Hệ thống", Icons.Filled.AccountCircle, Icons.Outlined.AccountCircle, "nav_profile")
     )
 
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -133,7 +134,7 @@ fun MainAdaptiveScreen(
                                 contentAlignment = Alignment.Center
                             ) {
                                 Icon(
-                                    imageVector = Icons.Filled.LocalShipping,
+                                    imageVector = Icons.Filled.BusinessCenter,
                                     contentDescription = null,
                                     tint = Color.White,
                                     modifier = Modifier.size(24.dp)
@@ -141,7 +142,7 @@ fun MainAdaptiveScreen(
                             }
                             Spacer(modifier = Modifier.height(4.dp))
                             Text(
-                                text = "GoShip",
+                                text = "BizManage",
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = BrandBlue
@@ -260,7 +261,7 @@ fun MainAdaptiveScreen(
             }
         }
 
-        // Create Order Sheet Modal
+        // Create Business Project / Task Sheet Modal
         CreateOrderSheet(
             isVisible = uiState.isCreateOrderSheetVisible,
             services = uiState.services,
@@ -301,6 +302,8 @@ private fun ScreenContent(
                 uiState = uiState,
                 onSearchChange = { viewModel.updateSearchQuery(it) },
                 onTabSelect = { viewModel.selectTab(it) },
+                onSelectScheduleDay = { viewModel.selectScheduleDay(it) },
+                onPerformCheckIn = { viewModel.performGpsCheckIn() },
                 onCreateOrderClick = { viewModel.openCreateOrderSheet() },
                 onOpenDbImportClick = { viewModel.openDatabaseImportSheet() },
                 onTrackOrderClick = { viewModel.setTrackingOrder(it) },
@@ -318,7 +321,8 @@ private fun ScreenContent(
                 onJumpToTracking = { viewModel.selectTab(2) }
             )
             2 -> TrackingScreen(
-                uiState = uiState
+                uiState = uiState,
+                onPerformCheckIn = { viewModel.performGpsCheckIn() }
             )
             3 -> ServicesScreen(
                 uiState = uiState,
@@ -326,7 +330,8 @@ private fun ScreenContent(
                 onSelectService = { viewModel.openCreateOrderSheet(it) }
             )
             4 -> AnalyticsScreen(
-                uiState = uiState
+                uiState = uiState,
+                onOpenDbImportClick = { viewModel.openDatabaseImportSheet() }
             )
             5 -> ProfileScreen(
                 uiState = uiState,

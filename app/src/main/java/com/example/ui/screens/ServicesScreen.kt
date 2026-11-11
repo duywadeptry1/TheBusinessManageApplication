@@ -18,12 +18,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ElectricBolt
-import androidx.compose.material.icons.filled.FlightTakeoff
-import androidx.compose.material.icons.filled.LocalShipping
-import androidx.compose.material.icons.filled.Public
-import androidx.compose.material.icons.filled.Timer
-import androidx.compose.material.icons.filled.Warehouse
+import androidx.compose.material.icons.filled.Badge
+import androidx.compose.material.icons.filled.BusinessCenter
+import androidx.compose.material.icons.filled.Devices
+import androidx.compose.material.icons.filled.Groups
+import androidx.compose.material.icons.filled.Inventory2
+import androidx.compose.material.icons.filled.VerifiedUser
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -32,6 +32,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -57,7 +58,17 @@ fun ServicesScreen(
     onSelectService: (ShippingService) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val isDark = LocalThemeIsDark.current
+    val filteredServices = remember(uiState.services, uiState.searchQuery) {
+        if (uiState.searchQuery.isBlank()) {
+            uiState.services
+        } else {
+            uiState.services.filter {
+                it.name.contains(uiState.searchQuery, ignoreCase = true) ||
+                        it.description.contains(uiState.searchQuery, ignoreCase = true) ||
+                        it.deliveryTime.contains(uiState.searchQuery, ignoreCase = true)
+            }
+        }
+    }
 
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
         val isTablet = maxWidth > 700.dp
@@ -73,13 +84,13 @@ fun ServicesScreen(
             item {
                 Column {
                     Text(
-                        text = "Giải pháp giao vận",
+                        text = "Nhân sự Chủ chốt & Giải pháp",
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "Lựa chọn gói dịch vụ tối ưu theo nhu cầu kiện hàng của bạn",
+                        text = "Danh bạ nhân sự quản lý (HR) và danh mục sản phẩm/giải pháp doanh nghiệp",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -90,22 +101,22 @@ fun ServicesScreen(
                 SearchBarField(
                     query = uiState.searchQuery,
                     onQueryChange = onSearchChange,
-                    placeholderText = "Tìm kiếm gói cước vận chuyển…"
+                    placeholderText = "Tìm kiếm nhân sự, phòng ban hoặc gói giải pháp…"
                 )
             }
 
-            items(uiState.services) { service ->
+            items(filteredServices, key = { it.id }) { service ->
+                val isStaff = service.name.contains("—")
                 val icon = when {
-                    service.name.contains("Hỏa tốc", ignoreCase = true) -> Icons.Default.ElectricBolt
-                    service.name.contains("Xe tải", ignoreCase = true) -> Icons.Default.LocalShipping
-                    service.name.contains("Quốc tế", ignoreCase = true) -> Icons.Default.FlightTakeoff
-                    else -> Icons.Default.Timer
+                    isStaff -> Icons.Default.Badge
+                    service.name.contains("POS", ignoreCase = true) -> Icons.Default.Devices
+                    else -> Icons.Default.Inventory2
                 }
 
                 val iconBg = when {
-                    service.name.contains("Hỏa tốc", ignoreCase = true) -> BrandOrange
-                    service.name.contains("Xe tải", ignoreCase = true) -> BrandBlue
-                    service.name.contains("Quốc tế", ignoreCase = true) -> AccentPurple
+                    isStaff && service.id == "SRV-01" -> BrandBlue
+                    isStaff -> BrandOrange
+                    service.name.contains("POS", ignoreCase = true) -> AccentPurple
                     else -> SuccessGreen
                 }
 
@@ -113,6 +124,7 @@ fun ServicesScreen(
                     service = service,
                     icon = icon,
                     iconColor = iconBg,
+                    isStaff = isStaff,
                     onBookClick = { onSelectService(service) }
                 )
             }
@@ -127,6 +139,7 @@ private fun ServiceItemCard(
     service: ShippingService,
     icon: ImageVector,
     iconColor: Color,
+    isStaff: Boolean,
     onBookClick: () -> Unit
 ) {
     val isDark = LocalThemeIsDark.current
@@ -151,7 +164,10 @@ private fun ServiceItemCard(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Box(
                         modifier = Modifier
                             .size(44.dp)
@@ -176,14 +192,14 @@ private fun ServiceItemCard(
                         )
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
-                                imageVector = Icons.Default.Timer,
+                                imageVector = if (isStaff) Icons.Default.VerifiedUser else Icons.Default.BusinessCenter,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                                 modifier = Modifier.size(13.dp)
                             )
                             Spacer(modifier = Modifier.width(4.dp))
                             Text(
-                                text = "Thời gian: ${service.deliveryTime}",
+                                text = service.deliveryTime,
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -225,12 +241,12 @@ private fun ServiceItemCard(
             ) {
                 Column {
                     Text(
-                        text = "Cước khởi điểm",
+                        text = if (isStaff) "Định mức lương & KPI tháng" else "Đơn giá gói giải pháp",
                         style = MaterialTheme.typography.labelSmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
-                        text = "từ ${GoShipViewModel.formatVnd(service.basePriceVnd)}",
+                        text = GoShipViewModel.formatVnd(service.basePriceVnd),
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = BrandBlue
@@ -243,7 +259,11 @@ private fun ServiceItemCard(
                     colors = ButtonDefaults.buttonColors(containerColor = BrandBlue),
                     modifier = Modifier.testTag("btn_book_${service.id}")
                 ) {
-                    Text("Đặt ngay", style = MaterialTheme.typography.labelMedium, color = Color.White)
+                    Text(
+                        if (isStaff) "Giao dự án" else "Tạo hợp đồng",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color.White
+                    )
                 }
             }
         }

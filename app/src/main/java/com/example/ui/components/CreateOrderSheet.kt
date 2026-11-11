@@ -18,12 +18,12 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CardGiftcard
+import androidx.compose.material.icons.filled.Assignment
+import androidx.compose.material.icons.filled.BusinessCenter
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.LocalShipping
-import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -77,17 +77,17 @@ fun CreateOrderSheet(
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
     val isDark = LocalThemeIsDark.current
 
-    var recipientName by remember { mutableStateOf("Trần Thu Trang") }
-    var recipientAddress by remember { mutableStateOf("Số 18 Đường Hai Bà Trưng, Quận Hoàn Kiếm, Hà Nội") }
-    var weightKg by remember { mutableFloatStateOf(1.5f) }
-    var selectedPaymentMethod by remember { mutableStateOf("COD") }
+    var recipientName by remember { mutableStateOf("Trần Thu Trang (Project Manager)") }
+    var recipientAddress by remember { mutableStateOf("Dự án: Mở rộng Hệ thống Quản trị Chi nhánh Miền Bắc") }
+    var weightKg by remember { mutableFloatStateOf(10.0f) }
+    var selectedDepartmentCode by remember { mutableStateOf("B2B") }
 
     val activeService = selectedService ?: services.firstOrNull()
-    val basePrice = activeService?.basePriceVnd ?: 25000L
-    val weightMultiplier = 1f + (weightKg * 0.12f)
-    val subtotal = (basePrice * weightMultiplier).toLong()
-    val discount = (subtotal * 0.15f).toLong() // 15% VIP discount
-    val total = (subtotal - discount).coerceAtLeast(15000L)
+    val baseBudget = activeService?.basePriceVnd ?: 25000000L
+    val workloadMultiplier = 0.5f + (weightKg * 0.08f)
+    val estimatedBudget = (baseBudget * workloadMultiplier).toLong()
+    val reserveFund = (estimatedBudget * 0.15f).toLong()
+    val totalApproved = estimatedBudget - reserveFund
 
     ModalBottomSheet(
         onDismissRequest = onDismiss,
@@ -109,7 +109,7 @@ fun CreateOrderSheet(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Xác nhận tạo đơn hàng",
+                    text = "Khởi tạo Dự án & Quy trình",
                     style = MaterialTheme.typography.titleLarge,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
@@ -151,7 +151,7 @@ fun CreateOrderSheet(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = Icons.Default.CardGiftcard,
+                            imageVector = Icons.Default.Verified,
                             contentDescription = null,
                             tint = Color.White,
                             modifier = Modifier.size(20.dp)
@@ -160,13 +160,13 @@ fun CreateOrderSheet(
                     Spacer(modifier = Modifier.width(12.dp))
                     Column {
                         Text(
-                            text = "Ưu đãi Hội viên Kim Cương",
+                            text = "Quy trình Phê duyệt Doanh nghiệp",
                             style = MaterialTheme.typography.labelLarge,
                             fontWeight = FontWeight.Bold,
                             color = if (isDark) Color(0xFFFFEDD5) else Color(0xFF9A3412)
                         )
                         Text(
-                            text = "Đã tự động áp dụng mã GOSHIPVIP giảm 15% phí vận chuyển!",
+                            text = "Tự động phân bổ ngân sách phòng ban & đồng bộ lên Room SQLite Database!",
                             style = MaterialTheme.typography.bodySmall,
                             color = if (isDark) Color(0xFFFDBA74) else Color(0xFFC2410C)
                         )
@@ -176,9 +176,9 @@ fun CreateOrderSheet(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Sender Information Box
+            // Initiator / Executive Office Box
             Text(
-                text = "Điểm gửi hàng (Kho của bạn)",
+                text = "Cấp phê duyệt & Đơn vị khởi tạo",
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -193,7 +193,7 @@ fun CreateOrderSheet(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    Icons.Default.LocationOn,
+                    Icons.Default.BusinessCenter,
                     contentDescription = null,
                     tint = BrandBlue,
                     modifier = Modifier.size(20.dp)
@@ -201,13 +201,13 @@ fun CreateOrderSheet(
                 Spacer(modifier = Modifier.width(10.dp))
                 Column {
                     Text(
-                        text = "Alex Nguyễn • 0987 654 321",
+                        text = "Alex Nguyễn (CEO) • Ban Giám Đốc Điều Hành",
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "120 Hoàng Hoa Thám, Ba Đình, Hà Nội",
+                        text = "Trụ sở Chính: 120 Hoàng Hoa Thám, Ba Đình, Hà Nội",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -216,9 +216,9 @@ fun CreateOrderSheet(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Recipient Input Fields
+            // Project & Assignee Input Fields
             Text(
-                text = "Thông tin người nhận",
+                text = "Thông tin Dự án / Quy trình công việc",
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -227,7 +227,7 @@ fun CreateOrderSheet(
             OutlinedTextField(
                 value = recipientName,
                 onValueChange = { recipientName = it },
-                label = { Text("Tên người nhận & SĐT") },
+                label = { Text("Nhân sự chủ trì / Quản lý dự án (Assignee)") },
                 leadingIcon = { Icon(Icons.Default.Person, contentDescription = null, tint = BrandBlue) },
                 singleLine = true,
                 modifier = Modifier
@@ -245,8 +245,8 @@ fun CreateOrderSheet(
             OutlinedTextField(
                 value = recipientAddress,
                 onValueChange = { recipientAddress = it },
-                label = { Text("Địa chỉ giao chi tiết") },
-                leadingIcon = { Icon(Icons.Default.LocationOn, contentDescription = null, tint = BrandOrange) },
+                label = { Text("Tên dự án / Mục tiêu bàn giao chi tiết") },
+                leadingIcon = { Icon(Icons.Default.Assignment, contentDescription = null, tint = BrandOrange) },
                 singleLine = true,
                 modifier = Modifier
                     .fillMaxWidth()
@@ -260,20 +260,20 @@ fun CreateOrderSheet(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Package Weight & Service Selection
+            // Workload Slider (Man-days)
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "Trọng lượng kiện hàng",
+                    text = "Thời lượng / Định mức nhân công",
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "${(weightKg * 10).roundToInt() / 10f} kg",
+                    text = "${(weightKg * 10).roundToInt() / 10f} ngày công",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold,
                     color = BrandBlue
@@ -283,8 +283,8 @@ fun CreateOrderSheet(
             Slider(
                 value = weightKg,
                 onValueChange = { weightKg = it },
-                valueRange = 0.5f..15f,
-                steps = 29,
+                valueRange = 1.0f..30.0f,
+                steps = 28,
                 colors = SliderDefaults.colors(
                     thumbColor = BrandBlue,
                     activeTrackColor = BrandBlue,
@@ -295,9 +295,9 @@ fun CreateOrderSheet(
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // Payment method selector
+            // Department selector
             Text(
-                text = "Hình thức thanh toán cước",
+                text = "Phòng ban chịu trách nhiệm chính",
                 style = MaterialTheme.typography.labelLarge,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -308,11 +308,12 @@ fun CreateOrderSheet(
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 listOf(
-                    "COD" to "Thu hộ COD",
-                    "WALLET" to "Ví GoShip",
-                    "VIETQR" to "VietQR 24/7"
+                    "B2B" to "Kinh doanh",
+                    "TECH" to "Kỹ thuật",
+                    "MKT" to "Marketing",
+                    "FIN" to "Tài chính"
                 ).forEach { (code, title) ->
-                    val isSelected = selectedPaymentMethod == code
+                    val isSelected = selectedDepartmentCode == code
                     Box(
                         modifier = Modifier
                             .weight(1f)
@@ -322,7 +323,7 @@ fun CreateOrderSheet(
                                 else if (isDark) MaterialTheme.colorScheme.surfaceVariant
                                 else Color(0xFFF1F5F9)
                             )
-                            .clickable { selectedPaymentMethod = code }
+                            .clickable { selectedDepartmentCode = code }
                             .padding(vertical = 10.dp),
                         contentAlignment = Alignment.Center
                     ) {
@@ -340,29 +341,29 @@ fun CreateOrderSheet(
             HorizontalDivider(color = if (isDark) MaterialTheme.colorScheme.outline.copy(alpha = 0.5f) else Color(0xFFE2E8F0))
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Cost summary
+            // Budget summary
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(text = "Cước vận chuyển gốc:", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(text = GoShipViewModel.formatVnd(subtotal), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
+                Text(text = "Tổng dự toán ngân sách:", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(text = GoShipViewModel.formatVnd(estimatedBudget), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurface)
             }
             Spacer(modifier = Modifier.height(6.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(text = "Chiết khấu VIP (15%):", style = MaterialTheme.typography.bodyMedium, color = SuccessGreen)
-                Text(text = "-${GoShipViewModel.formatVnd(discount)}", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = SuccessGreen)
+                Text(text = "Tối ưu hóa chi phí nội bộ (15%):", style = MaterialTheme.typography.bodyMedium, color = SuccessGreen)
+                Text(text = "-${GoShipViewModel.formatVnd(reserveFund)}", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.SemiBold, color = SuccessGreen)
             }
             Spacer(modifier = Modifier.height(6.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
-                Text(text = "Bảo hiểm giá trị hàng:", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                Text(text = "Miễn phí", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
+                Text(text = "Quyền phê duyệt nhanh (CEO):", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                Text(text = "Hiệu lực ngay", style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium, color = MaterialTheme.colorScheme.onSurface)
             }
             Spacer(modifier = Modifier.height(10.dp))
             Row(
@@ -370,8 +371,8 @@ fun CreateOrderSheet(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(text = "Tổng cước cần thanh toán:", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
-                Text(text = GoShipViewModel.formatVnd(total), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = BrandBlue)
+                Text(text = "Ngân sách giải ngân duyệt cấp:", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+                Text(text = GoShipViewModel.formatVnd(totalApproved), style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, color = BrandBlue)
             }
 
             Spacer(modifier = Modifier.height(20.dp))
@@ -391,7 +392,7 @@ fun CreateOrderSheet(
 
                 Button(
                     onClick = {
-                        onConfirm(recipientName, recipientAddress, weightKg, selectedPaymentMethod)
+                        onConfirm(recipientName, recipientAddress, weightKg, selectedDepartmentCode)
                     },
                     modifier = Modifier
                         .weight(2f)
@@ -401,7 +402,7 @@ fun CreateOrderSheet(
                 ) {
                     Icon(Icons.Default.Check, contentDescription = null, modifier = Modifier.size(18.dp))
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Xác nhận tạo đơn", style = MaterialTheme.typography.labelLarge, color = Color.White)
+                    Text("Phê duyệt & Lưu DB", style = MaterialTheme.typography.labelLarge, color = Color.White)
                 }
             }
 

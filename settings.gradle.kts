@@ -22,6 +22,6 @@ dependencyResolutionManagement {
   }
 }
 
-rootProject.name = "GoShip"
+rootProject.name = "Business Manage"
 
 include(":app")

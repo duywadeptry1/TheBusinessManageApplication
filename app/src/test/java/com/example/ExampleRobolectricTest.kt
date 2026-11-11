@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking
 import org.junit.After
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
@@ -46,7 +47,7 @@ class ExampleRobolectricTest {
     fun `read string from context`() {
         val context = ApplicationProvider.getApplicationContext<Context>()
         val appName = context.getString(R.string.app_name)
-        assertEquals("GoShip", appName)
+        assertEquals("Business Manage", appName)
     }
 
     @Test
@@ -76,7 +77,7 @@ class ExampleRobolectricTest {
         val ordersAfterCsv = repository.ordersFlow.first()
         assertEquals(8, ordersAfterCsv.size)
 
-        // Update order status in Room DB
+        // Update project workflow status in Room DB
         repository.updateOrderStatus("ORD-001", OrderStatus.COMPLETED)
         val updatedOrder = repository.ordersFlow.first().find { it.id == "ORD-001" }
         assertNotNull(updatedOrder)
@@ -84,21 +85,28 @@ class ExampleRobolectricTest {
     }
 
     @Test
-    fun `test GoShipViewModel initialization and order creation`() {
+    fun `test Business Manage workflow processes and GPS check-in`() {
         val viewModel = GoShipViewModel()
         val initialCount = viewModel.uiState.value.orders.size
+        assertFalse(viewModel.uiState.value.isCheckedInToday)
 
+        // Process 1: Create new Business Project
         viewModel.createOrder(
-            recipientName = "Test Recipient",
-            recipientAddress = "123 Test Street",
-            weightKg = 2.0f,
-            paymentMethod = "COD"
+            recipientName = "Trần Thu Trang",
+            recipientAddress = "Dự án ERP Chi nhánh Miền Bắc",
+            weightKg = 10.0f,
+            paymentMethod = "TECH"
         )
 
         val updatedState = viewModel.uiState.value
         assertEquals(initialCount + 1, updatedState.orders.size)
         assertEquals(OrderStatus.PENDING, updatedState.orders.first().status)
-        assertEquals("Test Recipient", updatedState.orders.first().recipientName)
+        assertEquals("Trần Thu Trang", updatedState.orders.first().recipientName)
+
+        // Process 2: GPS Attendance Check-in
+        viewModel.performGpsCheckIn()
+        assertTrue(viewModel.uiState.value.isCheckedInToday)
+        assertEquals(125, viewModel.uiState.value.attendanceCount)
     }
 
     @Test

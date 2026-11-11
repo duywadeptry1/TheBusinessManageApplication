@@ -22,12 +22,13 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalanceWallet
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.CloudDownload
-import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.DarkMode
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.LocationOn
 import androidx.compose.material.icons.filled.Notifications
-import androidx.compose.material.icons.filled.Send
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -45,6 +46,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.model.OrderStatus
+import com.example.model.ScheduleDayItem
 import com.example.ui.components.OrderListItemCard
 import com.example.ui.components.SearchBarField
 import com.example.ui.components.SectionHeader
@@ -53,8 +55,6 @@ import com.example.ui.theme.BrandBlue
 import com.example.ui.theme.BrandOrange
 import com.example.ui.theme.ErrorRed
 import com.example.ui.theme.LocalThemeIsDark
-import com.example.ui.theme.PromoCardDarkGradient
-import com.example.ui.theme.PromoCardGradient
 import com.example.ui.theme.SuccessGreen
 import com.example.viewmodel.GoShipUiState
 
@@ -63,6 +63,8 @@ fun HomeScreen(
     uiState: GoShipUiState,
     onSearchChange: (String) -> Unit,
     onTabSelect: (Int) -> Unit,
+    onSelectScheduleDay: (Int) -> Unit = {},
+    onPerformCheckIn: () -> Unit = {},
     onCreateOrderClick: () -> Unit,
     onOpenDbImportClick: () -> Unit,
     onTrackOrderClick: (String) -> Unit,
@@ -85,7 +87,7 @@ fun HomeScreen(
         ) {
             item { Spacer(modifier = Modifier.height(8.dp)) }
 
-            // Top Header: User Profile, Greeting & Action Buttons
+            // Top Header: Executive Profile, Role Badge & Action Buttons
             item {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -123,19 +125,19 @@ fun HomeScreen(
                                 Box(
                                     modifier = Modifier
                                         .clip(RoundedCornerShape(6.dp))
-                                        .background(BrandOrange.copy(alpha = if (isDark) 0.3f else 0.15f))
+                                        .background(BrandBlue.copy(alpha = if (isDark) 0.3f else 0.12f))
                                         .padding(horizontal = 6.dp, vertical = 2.dp)
                                 ) {
                                     Text(
-                                        text = "VIP Kim Cương",
+                                        text = "CEO • Quản trị",
                                         style = MaterialTheme.typography.labelSmall,
-                                        color = BrandOrange,
+                                        color = BrandBlue,
                                         fontWeight = FontWeight.Bold
                                     )
                                 }
                             }
                             Text(
-                                text = "Database đang lưu ${uiState.orders.size} đơn ($activeDeliveringCount đang xử lý)",
+                                text = "The Business Manage • ${uiState.orders.size} dự án ($activeDeliveringCount đang xử lý)",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -192,11 +194,11 @@ fun HomeScreen(
                 SearchBarField(
                     query = uiState.searchQuery,
                     onQueryChange = onSearchChange,
-                    placeholderText = "Tra cứu mã vận đơn, người nhận hoặc dịch vụ…"
+                    placeholderText = "Tìm mã dự án, hợp đồng, phòng ban hoặc nhân sự…"
                 )
             }
 
-            // 4 Stats Cards (Responsive: 4 in a row on tablet, 2x2 grid on phone)
+            // 4 Business KPI Cards (Responsive: 4 in a row on tablet, 2x2 grid on phone)
             item {
                 val statColors = listOf(BrandBlue, BrandOrange, SuccessGreen, ErrorRed)
 
@@ -243,16 +245,26 @@ fun HomeScreen(
                 }
             }
 
-            // Quick Actions Bar
+            // Weekly Schedule & Shift / Attendance Strip (Matches Screen 1 of Figma Design)
             item {
-                SectionHeader(title = "Thao tác nhanh")
+                WeeklyScheduleCard(
+                    schedule = uiState.weeklySchedule,
+                    selectedIndex = uiState.selectedScheduleDayIndex,
+                    attendanceCount = uiState.attendanceCount,
+                    onSelectDay = onSelectScheduleDay
+                )
+            }
+
+            // Quick Business Process Actions Bar
+            item {
+                SectionHeader(title = "Quy trình nghiệp vụ nhanh")
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     QuickActionButton(
                         icon = Icons.Default.Add,
-                        label = "Tạo đơn mới",
+                        label = "Tạo dự án mới",
                         isPrimary = true,
                         onClick = onCreateOrderClick,
                         modifier = Modifier.weight(1f)
@@ -267,15 +279,18 @@ fun HomeScreen(
                             .testTag("quick_action_import_db")
                     )
                     QuickActionButton(
-                        icon = Icons.Default.Send,
-                        label = "Gửi hỏa tốc",
+                        icon = Icons.Default.LocationOn,
+                        label = "Chấm công GPS",
                         isPrimary = false,
-                        onClick = { onTabSelect(3) },
+                        onClick = {
+                            onPerformCheckIn()
+                            onTabSelect(2)
+                        },
                         modifier = Modifier.weight(1f)
                     )
                     QuickActionButton(
                         icon = Icons.Default.AccountBalanceWallet,
-                        label = "Nạp ví",
+                        label = "Duyệt quỹ",
                         isPrimary = false,
                         onClick = { onTabSelect(4) },
                         modifier = Modifier.weight(1f)
@@ -283,109 +298,200 @@ fun HomeScreen(
                 }
             }
 
-            // Promotional Banner Card
-            item {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .testTag("promo_banner_card"),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = Color.Transparent)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(if (isDark) PromoCardDarkGradient else PromoCardGradient)
-                            .border(
-                                1.dp,
-                                if (isDark) Color(0xFF7C2D12) else Color(0xFFFED7AA),
-                                RoundedCornerShape(16.dp)
-                            )
-                            .padding(16.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Box(
-                                        modifier = Modifier
-                                            .clip(RoundedCornerShape(4.dp))
-                                            .background(BrandOrange)
-                                            .padding(horizontal = 6.dp, vertical = 2.dp)
-                                    ) {
-                                        Text(
-                                            text = "ƯU ĐÃI THÁNG 11",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = Color.White,
-                                            fontWeight = FontWeight.Bold
-                                        )
-                                    }
-                                }
-                                Spacer(modifier = Modifier.height(6.dp))
-                                Text(
-                                    text = "Giảm 20% đơn giao liên tỉnh",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = if (isDark) Color(0xFFFFEDD5) else Color(0xFF7C2D12)
-                                )
-                                Text(
-                                    text = "Áp dụng tối đa 50.000 đ cho tất cả kiện hàng",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = if (isDark) Color(0xFFFDBA74) else Color(0xFF9A3412)
-                                )
-                            }
-
-                            Row(
-                                modifier = Modifier
-                                    .clip(RoundedCornerShape(8.dp))
-                                    .background(BrandOrange)
-                                    .clickable { }
-                                    .padding(horizontal = 10.dp, vertical = 6.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Text(
-                                    text = "GOSHIP20",
-                                    style = MaterialTheme.typography.labelMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.White
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Icon(
-                                    imageVector = Icons.Default.ContentCopy,
-                                    contentDescription = "Copy code",
-                                    tint = Color.White,
-                                    modifier = Modifier.size(14.dp)
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Recent Orders Header
+            // Recent Business Projects & Tasks Header
             item {
                 SectionHeader(
-                    title = "Đơn hàng gần đây",
+                    title = "Dự án & Quy trình trọng tâm",
                     actionText = "Xem tất cả (${uiState.orders.size})",
                     onActionClick = { onTabSelect(1) }
                 )
             }
 
-            // Recent Orders List (Top 3)
+            // Recent Projects & Contracts List (Top 3)
             items(uiState.orders.take(3), key = { it.id }) { order ->
                 OrderListItemCard(
                     order = order,
                     onTrackClick = {
                         onTrackOrderClick(order.trackingNumber)
-                        onTabSelect(2) // Jump to tracking screen
+                        onTabSelect(2)
                     }
                 )
             }
 
             item { Spacer(modifier = Modifier.height(24.dp)) }
+        }
+    }
+}
+
+@Composable
+private fun WeeklyScheduleCard(
+    schedule: List<ScheduleDayItem>,
+    selectedIndex: Int,
+    attendanceCount: Int,
+    onSelectDay: (Int) -> Unit
+) {
+    val isDark = LocalThemeIsDark.current
+    val cardBg = if (isDark) MaterialTheme.colorScheme.surface else Color.White
+    val borderCol = if (isDark) MaterialTheme.colorScheme.outline.copy(alpha = 0.4f) else Color(0xFFE2E8F0)
+    val activeDay = schedule.getOrNull(selectedIndex) ?: schedule.firstOrNull()
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .border(1.dp, borderCol, RoundedCornerShape(16.dp))
+            .testTag("weekly_schedule_card"),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = cardBg),
+        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.CalendarMonth,
+                        contentDescription = null,
+                        tint = BrandBlue,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Lịch điều hành & Giao ban tuần",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+
+                Text(
+                    text = "Tháng 11, 2026",
+                    style = MaterialTheme.typography.labelMedium,
+                    color = BrandBlue,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+
+            Spacer(modifier = Modifier.height(14.dp))
+
+            // 7-Day Strip (T2 .. CN) with highlighted active pill as in Figma Screen 1
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                schedule.forEachIndexed { index, day ->
+                    val isSelected = index == selectedIndex
+                    Column(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(
+                                if (isSelected) BrandBlue
+                                else if (isDark) MaterialTheme.colorScheme.surfaceVariant
+                                else Color(0xFFF8FAFC)
+                            )
+                            .clickable { onSelectDay(index) }
+                            .padding(horizontal = 10.dp, vertical = 8.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text(
+                            text = day.dayOfWeek,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = if (isSelected) Color.White.copy(alpha = 0.85f) else MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text(
+                            text = day.dayNumber,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+            }
+
+            if (activeDay != null) {
+                Spacer(modifier = Modifier.height(14.dp))
+
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(if (isDark) MaterialTheme.colorScheme.surfaceVariant else Color(0xFFF8FAFC))
+                        .padding(12.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        modifier = Modifier.weight(1f),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(38.dp)
+                                .clip(CircleShape)
+                                .background(BrandBlue.copy(alpha = 0.15f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Groups,
+                                contentDescription = null,
+                                tint = BrandBlue,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(10.dp))
+                        Column {
+                            Text(
+                                text = activeDay.meetingTitle,
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            Text(
+                                text = "${activeDay.department} • ${activeDay.timeSlot}",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+
+                    Column(horizontalAlignment = Alignment.End) {
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(SuccessGreen.copy(alpha = if (isDark) 0.25f else 0.12f))
+                                .padding(horizontal = 8.dp, vertical = 3.dp)
+                        ) {
+                            Text(
+                                text = "$attendanceCount/130 có mặt",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (isDark) Color(0xFF6EE7B7) else SuccessGreen,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Box(
+                            modifier = Modifier
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(BrandOrange.copy(alpha = if (isDark) 0.25f else 0.12f))
+                                .padding(horizontal = 8.dp, vertical = 3.dp)
+                        ) {
+                            Text(
+                                text = activeDay.statusBadge,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = BrandOrange,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                    }
+                }
+            }
         }
     }
 }
@@ -409,7 +515,7 @@ private fun QuickActionButton(
     ) {
         Box(
             modifier = Modifier
-                                .size(50.dp)
+                .size(50.dp)
                 .clip(RoundedCornerShape(14.dp))
                 .background(
                     if (isPrimary) BrandBlue

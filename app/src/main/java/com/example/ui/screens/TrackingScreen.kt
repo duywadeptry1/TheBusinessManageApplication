@@ -3,7 +3,6 @@ package com.example.ui.screens
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -24,22 +23,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.Navigation
+import androidx.compose.material.icons.filled.MyLocation
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Phone
-import androidx.compose.material.icons.filled.RadioButtonChecked
-import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -65,9 +58,9 @@ import com.example.viewmodel.GoShipUiState
 @Composable
 fun TrackingScreen(
     uiState: GoShipUiState,
+    onPerformCheckIn: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val isDark = LocalThemeIsDark.current
     val driver = uiState.activeDriver
     var isCalling by remember { mutableStateOf(false) }
 
@@ -75,7 +68,7 @@ fun TrackingScreen(
         val isTablet = maxWidth > 700.dp
 
         if (isTablet) {
-            // Tablet Side-by-Side Fluid Layout: Left Map (58%), Right Driver & Timeline (42%)
+            // Tablet Side-by-Side Fluid Layout: Left Branch Map (58%), Right Branch Info & Workflow Timeline (42%)
             Row(
                 modifier = Modifier
                     .fillMaxSize()
@@ -88,18 +81,21 @@ fun TrackingScreen(
                         .weight(1.2f)
                         .fillMaxSize()
                 ) {
-                    TrackingTopBar(trackingNumber = uiState.trackingOrderId)
+                    TrackingTopBar(
+                        trackingNumber = uiState.trackingOrderId,
+                        isCheckedIn = uiState.isCheckedInToday
+                    )
                     Spacer(modifier = Modifier.height(14.dp))
                     InteractiveMapView(
-                        driverEtaMinutes = driver?.etaMinutes ?: 18,
-                        distanceKm = driver?.currentDistanceKm ?: 1.8f,
+                        driverEtaMinutes = driver?.etaMinutes ?: 12,
+                        distanceKm = driver?.currentDistanceKm ?: 0.1f,
                         modifier = Modifier
                             .fillMaxWidth()
                             .weight(1f)
                     )
                 }
 
-                // Driver & Steps Column
+                // Branch & Workflow Steps Column
                 Column(
                     modifier = Modifier
                         .weight(0.8f)
@@ -110,7 +106,9 @@ fun TrackingScreen(
                     if (driver != null) {
                         DriverCard(
                             driver = driver,
+                            isCheckedIn = uiState.isCheckedInToday,
                             isCalling = isCalling,
+                            onPerformCheckIn = onPerformCheckIn,
                             onToggleCall = { isCalling = !isCalling }
                         )
                     }
@@ -121,7 +119,7 @@ fun TrackingScreen(
                 }
             }
         } else {
-            // Mobile Layout: Map on top, Driver Card & Timeline below
+            // Mobile Layout: Branch Map on top, Branch Card & Operational Timeline below
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -131,11 +129,14 @@ fun TrackingScreen(
             ) {
                 Spacer(modifier = Modifier.height(8.dp))
 
-                TrackingTopBar(trackingNumber = uiState.trackingOrderId)
+                TrackingTopBar(
+                    trackingNumber = uiState.trackingOrderId,
+                    isCheckedIn = uiState.isCheckedInToday
+                )
 
                 InteractiveMapView(
-                    driverEtaMinutes = driver?.etaMinutes ?: 18,
-                    distanceKm = driver?.currentDistanceKm ?: 1.8f,
+                    driverEtaMinutes = driver?.etaMinutes ?: 12,
+                    distanceKm = driver?.currentDistanceKm ?: 0.1f,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(240.dp)
@@ -144,7 +145,9 @@ fun TrackingScreen(
                 if (driver != null) {
                     DriverCard(
                         driver = driver,
+                        isCheckedIn = uiState.isCheckedInToday,
                         isCalling = isCalling,
+                        onPerformCheckIn = onPerformCheckIn,
                         onToggleCall = { isCalling = !isCalling }
                     )
                 }
@@ -158,7 +161,7 @@ fun TrackingScreen(
 }
 
 @Composable
-private fun TrackingTopBar(trackingNumber: String) {
+private fun TrackingTopBar(trackingNumber: String, isCheckedIn: Boolean) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
@@ -166,13 +169,13 @@ private fun TrackingTopBar(trackingNumber: String) {
     ) {
         Column {
             Text(
-                text = "Theo dõi hành trình",
+                text = "Chi nhánh & Chấm công GPS",
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = "Mã vận đơn: $trackingNumber",
+                text = "Dự án trọng điểm: $trackingNumber",
                 style = MaterialTheme.typography.bodyMedium,
                 color = BrandBlue,
                 fontWeight = FontWeight.Bold
@@ -182,13 +185,16 @@ private fun TrackingTopBar(trackingNumber: String) {
         Box(
             modifier = Modifier
                 .clip(RoundedCornerShape(8.dp))
-                .background(BrandOrange.copy(alpha = 0.15f))
+                .background(
+                    if (isCheckedIn) SuccessGreen.copy(alpha = 0.15f)
+                    else BrandOrange.copy(alpha = 0.15f)
+                )
                 .padding(horizontal = 10.dp, vertical = 6.dp)
         ) {
             Text(
-                text = "Đang giao 2H",
+                text = if (isCheckedIn) "Đã chấm công" else "Ca hành chính",
                 style = MaterialTheme.typography.labelSmall,
-                color = BrandOrange,
+                color = if (isCheckedIn) SuccessGreen else BrandOrange,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -198,7 +204,9 @@ private fun TrackingTopBar(trackingNumber: String) {
 @Composable
 private fun DriverCard(
     driver: CourierDriver,
+    isCheckedIn: Boolean,
     isCalling: Boolean,
+    onPerformCheckIn: () -> Unit,
     onToggleCall: () -> Unit
 ) {
     val isDark = LocalThemeIsDark.current
@@ -226,7 +234,6 @@ private fun DriverCard(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Driver Avatar
                 Box(
                     modifier = Modifier
                         .size(48.dp)
@@ -265,7 +272,7 @@ private fun DriverCard(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = "${driver.rating} ★ (${driver.completedTrips} chuyến thành công)",
+                            text = "KPI Chi nhánh: ${driver.rating}/5.0 (${driver.completedTrips} dự án hoàn tất)",
                             style = MaterialTheme.typography.labelSmall,
                             fontWeight = FontWeight.SemiBold,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
@@ -276,30 +283,42 @@ private fun DriverCard(
 
             Spacer(modifier = Modifier.height(14.dp))
 
-            // Action Buttons: Call & Chat
+            // Primary Process Button: GPS Attendance Check-in & Contact Branch Manager
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Button(
-                    onClick = onToggleCall,
-                    modifier = Modifier.weight(1f),
+                    onClick = onPerformCheckIn,
+                    modifier = Modifier
+                        .weight(1.2f)
+                        .testTag("btn_gps_checkin"),
                     shape = RoundedCornerShape(10.dp),
-                    colors = ButtonDefaults.buttonColors(containerColor = BrandBlue)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isCheckedIn) SuccessGreen else BrandBlue
+                    )
                 ) {
-                    Icon(Icons.Default.Call, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Icon(
+                        if (isCheckedIn) Icons.Default.CheckCircle else Icons.Default.MyLocation,
+                        contentDescription = null,
+                        modifier = Modifier.size(16.dp)
+                    )
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Gọi ${driver.phone}", style = MaterialTheme.typography.labelMedium, color = Color.White)
+                    Text(
+                        if (isCheckedIn) "Đã Chấm Công GPS" else "Chấm công GPS",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = Color.White
+                    )
                 }
 
                 OutlinedButton(
-                    onClick = {},
-                    modifier = Modifier.weight(0.7f),
+                    onClick = onToggleCall,
+                    modifier = Modifier.weight(0.8f),
                     shape = RoundedCornerShape(10.dp)
                 ) {
-                    Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Icon(Icons.Default.Call, contentDescription = null, modifier = Modifier.size(16.dp))
                     Spacer(modifier = Modifier.width(6.dp))
-                    Text("Nhắn tin", style = MaterialTheme.typography.labelMedium)
+                    Text("Liên hệ", style = MaterialTheme.typography.labelMedium)
                 }
             }
 
@@ -314,7 +333,7 @@ private fun DriverCard(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "Đang kết nối thoại tới ${driver.name}…",
+                        text = "Đang kết nối tổng đài nội bộ tới ${driver.name} (${driver.phone})…",
                         style = MaterialTheme.typography.bodySmall,
                         color = SuccessGreen,
                         fontWeight = FontWeight.Bold
@@ -348,7 +367,7 @@ private fun TimelineCard(steps: List<TrackingStep>) {
                 .padding(16.dp)
         ) {
             Text(
-                text = "Hành trình chi tiết",
+                text = "Nhật ký Quy trình Vận hành trong ngày",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface

@@ -1,6 +1,6 @@
 {
-  "name": "GoShip",
-  "description": "Smart logistics, express tracking, and financial analytics hub with adaptive mobile and tablet support.",
+  "name": "Business Manage",
+  "description": "The Business Manage Application — Enterprise operations, project workflows, HR directory, branch GPS check-in, and financial analytics with Room SQLite database.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }

@@ -1,7 +1,5 @@
 package com.example.ui.screens
 
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -26,8 +24,6 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.AddCard
-import androidx.compose.material.icons.filled.ArrowDownward
-import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.QrCodeScanner
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.Card
@@ -53,7 +49,6 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.example.model.DailyRevenue
 import com.example.model.PaymentMethodShare
 import com.example.ui.theme.AccentPurple
@@ -68,9 +63,9 @@ import com.example.viewmodel.GoShipViewModel
 @Composable
 fun AnalyticsScreen(
     uiState: GoShipUiState,
+    onOpenDbImportClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val isDark = LocalThemeIsDark.current
     var selectedDayIndex by remember { mutableIntStateOf(4) } // Default to T6 (Friday)
 
     BoxWithConstraints(modifier = modifier.fillMaxSize()) {
@@ -84,7 +79,7 @@ fun AnalyticsScreen(
                     .padding(horizontal = 24.dp, vertical = 16.dp),
                 horizontalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                // Left Column: Wallet Card & Bar Chart (55%)
+                // Left Column: Treasury Card & Bar Chart (55%)
                 Column(
                     modifier = Modifier
                         .weight(1.1f)
@@ -92,7 +87,7 @@ fun AnalyticsScreen(
                         .verticalScroll(rememberScrollState()),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    WalletBalanceCard()
+                    WalletBalanceCard(onImportClick = onOpenDbImportClick)
                     InteractiveRevenueChart(
                         revenues = uiState.dailyRevenues,
                         selectedIndex = selectedDayIndex,
@@ -100,7 +95,7 @@ fun AnalyticsScreen(
                     )
                 }
 
-                // Right Column: Payment breakdown & Stats (45%)
+                // Right Column: Cashflow breakdown & Audit Tips (45%)
                 Column(
                     modifier = Modifier
                         .weight(0.9f)
@@ -124,13 +119,13 @@ fun AnalyticsScreen(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 Text(
-                    text = "Báo cáo tài chính & Ví",
+                    text = "Quản trị Tài chính & Ngân sách",
                     style = MaterialTheme.typography.headlineMedium,
                     fontWeight = FontWeight.Bold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
 
-                WalletBalanceCard()
+                WalletBalanceCard(onImportClick = onOpenDbImportClick)
 
                 InteractiveRevenueChart(
                     revenues = uiState.dailyRevenues,
@@ -149,7 +144,7 @@ fun AnalyticsScreen(
 }
 
 @Composable
-private fun WalletBalanceCard() {
+private fun WalletBalanceCard(onImportClick: () -> Unit) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -170,7 +165,7 @@ private fun WalletBalanceCard() {
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = "Số dư ví GoShip",
+                        text = "Quỹ Ngân sách Doanh nghiệp khả dụng",
                         style = MaterialTheme.typography.labelLarge,
                         color = Color.White.copy(alpha = 0.85f),
                         fontWeight = FontWeight.Medium
@@ -219,7 +214,7 @@ private fun WalletBalanceCard() {
                 ) {
                     Column {
                         Text(
-                            text = "Tiền COD đang giữ",
+                            text = "Chi phí vận hành tháng",
                             style = MaterialTheme.typography.labelSmall,
                             color = Color.White.copy(alpha = 0.75f)
                         )
@@ -232,7 +227,7 @@ private fun WalletBalanceCard() {
                     }
                     Column(horizontalAlignment = Alignment.End) {
                         Text(
-                            text = "Đã đối soát tuần này",
+                            text = "Doanh thu hợp đồng tuần",
                             style = MaterialTheme.typography.labelSmall,
                             color = Color.White.copy(alpha = 0.75f)
                         )
@@ -254,20 +249,20 @@ private fun WalletBalanceCard() {
                 ) {
                     WalletActionButton(
                         icon = Icons.Default.AddCard,
-                        label = "Nạp ví",
-                        onClick = {},
+                        label = "Cấp ngân sách",
+                        onClick = onImportClick,
                         modifier = Modifier.weight(1f)
                     )
                     WalletActionButton(
                         icon = Icons.Default.AccountBalance,
-                        label = "Rút tiền",
+                        label = "Giải ngân",
                         onClick = {},
                         modifier = Modifier.weight(1f)
                     )
                     WalletActionButton(
                         icon = Icons.Default.QrCodeScanner,
-                        label = "Quét QR",
-                        onClick = {},
+                        label = "Nhập DB",
+                        onClick = onImportClick,
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -339,13 +334,13 @@ private fun InteractiveRevenueChart(
             ) {
                 Column {
                     Text(
-                        text = "Doanh thu tuần này",
+                        text = "Doanh thu & Hiệu suất tuần",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "Nhấn vào cột để xem chi tiết từng ngày",
+                        text = "Nhấn vào cột để xem doanh thu & số dự án hoàn tất",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -359,7 +354,7 @@ private fun InteractiveRevenueChart(
                         .padding(horizontal = 10.dp, vertical = 6.dp)
                 ) {
                     Text(
-                        text = "${activeItem.dayLabel}: ${GoShipViewModel.formatVnd(activeItem.amountVnd)} (${activeItem.orderCount} đơn)",
+                        text = "${activeItem.dayLabel}: ${GoShipViewModel.formatVnd(activeItem.amountVnd)} (${activeItem.orderCount} việc)",
                         style = MaterialTheme.typography.labelSmall,
                         fontWeight = FontWeight.Bold,
                         color = BrandBlue
@@ -401,7 +396,6 @@ private fun InteractiveRevenueChart(
                         else -> if (isDark) Color(0xFF334155) else Color(0xFFBFDBFE)
                     }
 
-                    // Bar
                     drawRoundRect(
                         color = barColor,
                         topLeft = Offset(x, y),
@@ -454,7 +448,7 @@ private fun PaymentBreakdownCard(shares: List<PaymentMethodShare>) {
                 .padding(18.dp)
         ) {
             Text(
-                text = "Phương thức thanh toán",
+                text = "Cơ cấu Dòng tiền & Phân bổ Ngân sách",
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.onSurface
@@ -464,8 +458,8 @@ private fun PaymentBreakdownCard(shares: List<PaymentMethodShare>) {
 
             shares.forEach { share ->
                 val barColor = when {
-                    share.name.contains("COD") -> SuccessGreen
-                    share.name.contains("Ví") -> BrandBlue
+                    share.name.contains("Doanh thu") || share.name.contains("COD") -> SuccessGreen
+                    share.name.contains("Vận hành") || share.name.contains("Ví") -> BrandBlue
                     else -> AccentPurple
                 }
 
@@ -529,13 +523,13 @@ private fun QuickFinancialTipsCard() {
             Spacer(modifier = Modifier.width(12.dp))
             Column {
                 Text(
-                    text = "Lịch đối soát tự động",
+                    text = "Quy trình Đối soát & Kiểm toán Tự động",
                     style = MaterialTheme.typography.labelLarge,
                     fontWeight = FontWeight.Bold,
                     color = BrandBlue
                 )
                 Text(
-                    text = "Tiền COD sẽ được đối soát tự động vào Thứ 2 và Thứ 5 hàng tuần về tài khoản Vietcombank của bạn.",
+                    text = "Báo cáo dòng tiền và lương thưởng KPI được đồng bộ trực tiếp với Room SQLite Database vào Thứ 2 và Thứ 6 hàng tuần.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

@@ -140,7 +140,7 @@ fun ProfileScreen(
                                         .padding(horizontal = 6.dp, vertical = 2.dp)
                                 ) {
                                     Text(
-                                        text = "VIP Kim Cương",
+                                        text = "CEO • Quản trị viên",
                                         style = MaterialTheme.typography.labelSmall,
                                         color = BrandOrange,
                                         fontWeight = FontWeight.Bold
@@ -149,12 +149,12 @@ fun ProfileScreen(
                             }
                             Spacer(modifier = Modifier.height(2.dp))
                             Text(
-                                text = "alex.nguyen@goship.vn",
+                                text = "alex.nguyen@bizmanage.vn",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
-                                text = "+84 987 654 321",
+                                text = "+84 987 654 321 • Trụ sở Chính Hà Nội",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -202,13 +202,13 @@ fun ProfileScreen(
                             Spacer(modifier = Modifier.width(12.dp))
                             Column {
                                 Text(
-                                    text = "Cơ sở dữ liệu Room SQLite",
+                                    text = "Database Doanh nghiệp (Room SQLite)",
                                     style = MaterialTheme.typography.titleMedium,
                                     fontWeight = FontWeight.Bold,
                                     color = MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = "Đang lưu ${uiState.orders.size} đơn hàng • ${uiState.services.size} dịch vụ • ${uiState.dailyRevenues.size} bản ghi doanh thu",
+                                    text = "Đang lưu ${uiState.orders.size} dự án • ${uiState.services.size} nhân sự & giải pháp • ${uiState.dailyRevenues.size} bản ghi tài chính",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
@@ -332,16 +332,16 @@ fun ProfileScreen(
                     Column(modifier = Modifier.fillMaxWidth()) {
                         ProfileSettingRow(
                             icon = Icons.Default.BookmarkBorder,
-                            title = "Sổ địa chỉ đã lưu",
-                            subtitle = "4 địa chỉ kho và điểm nhận thường dùng",
+                            title = "Cơ cấu Tổ chức & Chi nhánh",
+                            subtitle = "3 chi nhánh (Hà Nội, Đà Nẵng, TP.HCM) • 5 phòng ban",
                             onClick = {}
                         )
                         HorizontalDivider(color = if (isDark) MaterialTheme.colorScheme.outline.copy(alpha = 0.4f) else Color(0xFFF1F5F9))
 
                         ProfileSettingRow(
                             icon = Icons.Default.AccountBalance,
-                            title = "Phương thức thanh toán & Ngân hàng",
-                            subtitle = "Vietcombank ••••4892, Ví GoShip",
+                            title = "Tài khoản Ngân sách & Giải ngân",
+                            subtitle = "Vietcombank Doanh nghiệp ••••4892",
                             onClick = {}
                         )
                         HorizontalDivider(color = if (isDark) MaterialTheme.colorScheme.outline.copy(alpha = 0.4f) else Color(0xFFF1F5F9))
